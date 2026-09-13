@@ -1,0 +1,12 @@
+{
+  "/not-found": "app/not-found.js",
+  "/page": "app/page.js",
+  "/api/attempt/route": "app/api/attempt/route.js",
+  "/practice/page": "app/practice/page.js",
+  "/diagnostic/page": "app/diagnostic/page.js",
+  "/revision/page": "app/revision/page.js",
+  "/api/learner/route": "app/api/learner/route.js",
+  "/evidence/page": "app/evidence/page.js",
+  "/api/skills/route": "app/api/skills/route.js",
+  "/settings/page": "app/settings/page.js"
+}

@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ----------------------------------------------------------------------
+// USER / LEARNER
+// ----------------------------------------------------------------------
+model Learner {
+  id             String         @id @default(uuid())
+  name           String
+  email          String         @unique
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  
+  careerTargetId String?
+  careerTarget   CareerTarget?  @relation(fields: [careerTargetId], references: [id])
+  
+  masteryStates  MasteryState[]
+  attempts       Attempt[]
+  assessments    AssessmentResult[]
+}
+
+model CareerTarget {
+  id          String   @id @default(uuid())
+  title       String   // e.g., "Data Scientist", "Software Engineer"
+  description String?
+  learners    Learner[]
+}
+
+// ----------------------------------------------------------------------
+// SKILL GRAPH
+// ----------------------------------------------------------------------
+model Domain {
+  id          String   @id @default(uuid())
+  name        String   // e.g., "DSA", "Python + SQL", "System Design"
+  description String?
+  skills      Skill[]
+}
+
+model Skill {
+  id                  String   @id @default(uuid())
+  name                String
+  description         String?
+  domainId            String
+  domain              Domain   @relation(fields: [domainId], references: [id])
+  
+  difficulty          Int      @default(1) // 1 to 5
+  estimatedEffortMins Int      @default(30)
+  
+  careerRelevance     Int      @default(3) // 1 to 5
+  interviewRelevance  Int      @default(3) // 1 to 5
+  
+  // Hierarchical structure (Parent-Child)
+  parentId            String?
+  parent              Skill?   @relation("SkillHierarchy", fields: [parentId], references: [id])
+  subSkills           Skill[]  @relation("SkillHierarchy")
+
+  // Prerequisites
+  prerequisites       Prerequisite[] @relation("DependentSkill")
+  dependents          Prerequisite[] @relation("PrerequisiteSkill")
+
+  // Relationships
+  masteryStates       MasteryState[]
+  resources           ResourceSkill[]
+  questions           Question[]
+}
+
+model Prerequisite {
+  id                  String @id @default(uuid())
+  
+  dependentSkillId    String
+  dependentSkill      Skill  @relation("DependentSkill", fields: [dependentSkillId], references: [id])
+  
+  prerequisiteSkillId String
+  prerequisiteSkill   Skill  @relation("PrerequisiteSkill", fields: [prerequisiteSkillId], references: [id])
+  
+  isHardRequirement   Boolean @default(true) // If true, blocked until prerequisite is met
+  
+  @@unique([dependentSkillId, prerequisiteSkillId])
+}
+
+// ----------------------------------------------------------------------
+// RESOURCES
+// ----------------------------------------------------------------------
+model Resource {
+  id          String   @id @default(uuid())
+  title       String
+  url         String?
+  type        String   // Video, Article, Interactive, Book
+  role        String   // Primary Learning, Practice, Assessment, Revision, Reference
+  
+  skills      ResourceSkill[]
+}
+
+model ResourceSkill {
+  id          String   @id @default(uuid())
+  resourceId  String
+  resource    Resource @relation(fields: [resourceId], references: [id])
+  skillId     String
+  skill       Skill    @relation(fields: [skillId], references: [id])
+  
+  @@unique([resourceId, skillId])
+}
+
+// ----------------------------------------------------------------------
+// ASSESSMENTS & QUESTIONS
+// ----------------------------------------------------------------------
+model Question {
+  id          String   @id @default(uuid())
+  text        String
+  type        String   // MultipleChoice, Coding, OpenEnded
+  skillId     String
+  skill       Skill    @relation(fields: [skillId], references: [id])
+  difficulty  Int      @default(1)
+  
+  attempts    Attempt[]
+}
+
+model Attempt {
+  id          String   @id @default(uuid())
+  learnerId   String
+  learner     Learner  @relation(fields: [learnerId], references: [id])
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id])
+  
+  isCorrect   Boolean
+  failureType String?  // Concept Gap, Prerequisite Gap, Careless Error, etc.
+  timeSpentMs Int?
+  
+  createdAt   DateTime @default(now())
+}
+
+model AssessmentResult {
+  id          String   @id @default(uuid())
+  learnerId   String
+  learner     Learner  @relation(fields: [learnerId], references: [id])
+  type        String   // Diagnostic, Formative, Interview
+  score       Float
+  
+  createdAt   DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------
+// LEARNER STATE & MASTERY
+// ----------------------------------------------------------------------
+model MasteryState {
+  id               String   @id @default(uuid())
+  learnerId        String
+  learner          Learner  @relation(fields: [learnerId], references: [id])
+  skillId          String
+  skill            Skill    @relation(fields: [skillId], references: [id])
+  
+  conceptualLevel  Float    @default(0.0) // 0.0 to 1.0
+  practicalLevel   Float    @default(0.0) // 0.0 to 1.0
+  retentionScore   Float    @default(1.0) // Decays over time
+  
+  lastAssessedAt   DateTime?
+  nextRevisionDate DateTime?
+  
+  @@unique([learnerId, skillId])
+}

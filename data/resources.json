@@ -1,0 +1,30 @@
+[
+  {
+    "title": "Python for Everybody",
+    "url": "https://www.py4e.com/",
+    "type": "Course",
+    "role": "Primary Learning",
+    "targetSkillNames": ["Python Fundamentals"]
+  },
+  {
+    "title": "LeetCode: Python Functions",
+    "url": "https://leetcode.com/tag/python/",
+    "type": "Interactive",
+    "role": "Practice",
+    "targetSkillNames": ["Python Functions"]
+  },
+  {
+    "title": "SQL Murder Mystery",
+    "url": "https://mystery.knightlab.com/",
+    "type": "Interactive",
+    "role": "Practice",
+    "targetSkillNames": ["SQL Fundamentals (SELECT, WHERE)", "SQL JOINs"]
+  },
+  {
+    "title": "Advanced Window Functions Cheat Sheet",
+    "url": "https://example.com/window-functions",
+    "type": "Article",
+    "role": "Reference",
+    "targetSkillNames": ["SQL Window Functions"]
+  }
+]
